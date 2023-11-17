@@ -1,5 +1,7 @@
 import numpy as np
-import hyper_utils
+import hyper.hyper_utils as hyper_utils
+from coord import LatticeCoord
+from system import LatticeSystem
 
 class PolarTransform(object):
     
@@ -77,5 +79,15 @@ class PolarTransform(object):
         copy_transform = self.copy()
         copy_transform.apply_polar_transform(p.inverse())
         return copy_transform.s
+
+
+class LatticeTransform(object):
     
-            
+    def __init__(self, transform: PolarTransform, coord: LatticeCoord, d_system: LatticeSystem) -> None:
+        self.rel_transform = transform
+        self.system = d_system
+        
+        self.base_point = d_system.get_lattice_point(coord)
+    
+    
+        

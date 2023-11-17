@@ -1,13 +1,13 @@
 import pygame
-import hyper_utils
+import hyper.hyper_utils as hyper_utils
 import numpy as np
 
-Scale = 400
-branch_length: float = 1.255
+SCALE = 400
+BRANCH_LENGTH: float = 1.255
 DEPTH: int = 3
 
 def scale_to_screen(point: np.ndarray) -> np.ndarray:
-    return point * Scale + Scale
+    return point * SCALE + SCALE
 
 def project_onto_screen(point: np.ndarray) -> np.ndarray:
     return scale_to_screen(hyper_utils.project_onto_poincare_disc(point))
@@ -30,9 +30,9 @@ def draw_order5_tiling(screen, cur_transform: np.ndarray) -> None:
         draw3_branch_sector(screen, transform_copy, 0)
 
 def draw3_branch_sector(screen, cur_transform: np.ndarray, depth: int) -> None:
-    draw_line(screen, cur_transform, 0, branch_length)
+    draw_line(screen, cur_transform, 0, BRANCH_LENGTH)
     transform_copy = cur_transform.copy()
-    transform_copy = transform_copy @ hyper_utils.translation_mat_z(branch_length)
+    transform_copy = transform_copy @ hyper_utils.translation_mat_z(BRANCH_LENGTH)
     transform_copy = transform_copy @ hyper_utils.rotation_mat(np.pi)
 
     if (depth < DEPTH):
@@ -44,14 +44,14 @@ def draw3_branch_sector(screen, cur_transform: np.ndarray, depth: int) -> None:
         draw3_branch_sector(screen, transform_copy, depth + 1)
 
 def draw2_branch_sector(screen, cur_transform: np.ndarray, depth: int) -> None:
-    draw_line(screen, cur_transform, 0, branch_length)
+    draw_line(screen, cur_transform, 0, BRANCH_LENGTH)
     transform_copy = cur_transform.copy()
-    transform_copy = transform_copy @ hyper_utils.translation_mat_z(branch_length)
+    transform_copy = transform_copy @ hyper_utils.translation_mat_z(BRANCH_LENGTH)
     transform_copy = transform_copy @ hyper_utils.rotation_mat(np.pi)
 
     if (depth < DEPTH):
         transform_copy = transform_copy @ hyper_utils.rotation_mat(2 * np.pi / 5)
-        draw_line(screen, transform_copy, 0, branch_length)
+        draw_line(screen, transform_copy, 0, BRANCH_LENGTH)
         transform_copy = transform_copy @ hyper_utils.rotation_mat(2 * np.pi / 5)
         draw2_branch_sector(screen, transform_copy, depth + 1)
         transform_copy = transform_copy @ hyper_utils.rotation_mat(2 * np.pi / 5)

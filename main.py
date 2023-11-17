@@ -1,8 +1,8 @@
 import pygame
-import render_utils
-from render_utils import Scale
-import hyper_utils
-from transforms import PolarTransform
+import hyper.render_utils as render_utils
+from hyper.render_utils import Scale
+import hyper.hyper_utils as hyper_utils
+from hyper.transforms import PolarTransform
 import numpy as np
 from sys import exit
 
