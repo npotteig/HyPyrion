@@ -1,11 +1,8 @@
 import copy
 import numpy as np
 
-from iterator import LatticeCircularIterator
-from coord import LatticeCoord, LatticeType
-from point import LatticePoint
-from walker import LatticeWalker
-from transforms import PolarTransform
+from hyper.lattice import *
+from hyper.transforms import PolarTransform, LatticeTransform
 
 
 class LatticeSystem(object):
@@ -20,7 +17,20 @@ class LatticeSystem(object):
         self.walker_origin.render_position = copy.deepcopy(self.walker_origin.absolute_position)
         
         self.lattice_walkers = [self.walker_origin]
-        self.generate_lattice_walkers(5)   
+        self.generate_lattice_walkers(3)   
+    
+    def validate_walker_positions(self, walker: LatticeWalker) -> None:
+        if not walker.valid_positions:
+            parent = self.generate_lattice_walker(walker.coord_origin_rel.coord_in_direction(0))
+            if parent.coord_origin_rel.type != LatticeType.ORIGIN:
+                self.validate_walker_positions(parent)
+            
+            walker.absolute_position = copy.deepcopy(parent.absolute_position)
+            
+            walker.absolute_position.apply_polar_transform(walker.rel_orient_parent)
+            walker.render_position = copy.deepcopy(walker.absolute_position)
+            walker.render_position.apply_rotation(-walker.direction_offset*2*np.pi/5)
+            walker.valid_positions = True
     
     def set_view_origin(self, coord: LatticeCoord, transform: PolarTransform) -> None:
         if self.walker_origin.base_point.coords.compare_to(coord) == 0:
@@ -32,7 +42,22 @@ class LatticeSystem(object):
             self.walker_origin.render_position = copy.deepcopy(self.walker_origin.absolute_position)
             self.walker_origin.valid_positions = True
             
+            for walker in self.lattice_walkers:
+                self.validate_walker_positions(walker)
+        else:
+            # regen walkers
+            self.walker_origin.direction_offset = 0
+            self.walker_origin.base_point = self.get_lattice_point(coord)
+            self.walker_origin.base_point.attached_walker=self.walker_origin
+            self.walker_origin.absolute_position = copy.deepcopy(transform)
+            self.walker_origin.render_position = copy.deepcopy(self.walker_origin.absolute_position)
+            self.lattice_walkers = [self.walker_origin]
+            self.generate_lattice_walkers(3)
+        # pass
     
+    def set_view_origin_lattrans(self, transform: LatticeTransform) -> None:
+        self.set_view_origin(transform.base_point.coords, transform.rel_transform)
+            
     def get_lattice_point(self, coord: LatticeCoord) -> LatticePoint:
         index = self.find_viable_point_index(coord)
         if index >= len(self.lattice_points):
@@ -45,6 +70,15 @@ class LatticeSystem(object):
         
         if L.coords.compare_to(coord) == 0:
             return L
+        return
+    
+    def get_lattice_point_if_exists(self, coord: LatticeCoord) -> LatticePoint:
+        index = self.find_viable_point_index(coord)
+        if index >= len(self.lattice_points):
+            return
+        else:
+            if self.lattice_points[index].coords.compare_to(coord) == 0:
+                return self.lattice_points[index]
         return
     
     def find_viable_point_index(self, coord: LatticeCoord) -> int:
@@ -78,11 +112,11 @@ class LatticeSystem(object):
                 return max_index
             if compare_to_max_index < 0:
                 # If coord > max_index, we would want to return the index just after max_index
-                return max_index
+                return max_index + 1
             if max_index - min_index == 1:
                 return max_index
             
-            mid_index = (min_index + max_index) / 2
+            mid_index = (min_index + max_index) // 2
             compare_to_midpoint = self.lattice_points[mid_index].compare_to(coord)
             if compare_to_midpoint < 0:
                 min_index = mid_index
@@ -148,6 +182,7 @@ class LatticeSystem(object):
         
         compare_to_min_index = self.lattice_walkers[min_index].compare_to(coord)
         compare_to_max_index = self.lattice_walkers[max_index].compare_to(coord)
+        
         while True:
             if compare_to_min_index >= 0:
                 # If the min index is the same or greater than the search coord, return min_index
@@ -159,11 +194,11 @@ class LatticeSystem(object):
                 return max_index
             if compare_to_max_index < 0:
                 # If coord > max_index, we would want to return the index just after max_index
-                return max_index
+                return max_index + 1
             if max_index - min_index == 1:
                 return max_index
             
-            mid_index = (min_index + max_index) / 2
+            mid_index = (min_index + max_index) // 2
             compare_to_midpoint = self.lattice_walkers[mid_index].compare_to(coord)
             if compare_to_midpoint < 0:
                 min_index = mid_index
@@ -184,30 +219,32 @@ class LatticeSystem(object):
         """
         if coord.type != LatticeType.INVALID:
             index = self.find_viable_walker_index(coord)
-            
+            # print(index)
             if len(self.lattice_walkers) > 0:
                 try:
                     if self.lattice_walkers[index].compare_to(coord) == 0:
+                        # print("latticewalker already in array")
                         return self.lattice_walkers[index]
                 except:
                     pass
             
-            W = LatticeWalker(coord, self)
+            temp = LatticeWalker(d_coord_rel=coord, d_system=self)
+            
             if coord.type != LatticeType.ORIGIN:
                 parent = self.generate_lattice_walker(coord.coord_in_direction(0))
                 
-                W.absolute_position = copy.deepcopy(W.rel_orient_parent)
-                W.absolute_position.preapply_polar_transform(parent.absolute_position)
-                W.base_point = self.get_lattice_point(parent.base_point.coords.coord_in_direction(parent.direction_offset + coord.direction_of_leaf()))
-                W.base_point.attached_walker = W
-                W.direction_offset = parent.base_point.coords.direction_after_travel(parent.direction_offset + coord.direction_of_leaf())
+                temp.absolute_position = copy.deepcopy(temp.rel_orient_parent)
+                temp.absolute_position.preapply_polar_transform(parent.absolute_position)
+                temp.base_point = self.get_lattice_point(parent.base_point.coords.coord_in_direction(parent.direction_offset + coord.direction_of_leaf()))
+                temp.base_point.attached_walker = temp
+                temp.direction_offset = parent.base_point.coords.direction_after_travel(parent.direction_offset + coord.direction_of_leaf())
                 
-                W.render_position = copy.deepcopy(W.absolute_position)
-                W.render_position.apply_rotation(-W.direction_offset * 2*np.pi/5)
-            W.valid_positions = True
+                temp.render_position = copy.deepcopy(temp.absolute_position)
+                # temp.render_position.apply_rotation(-temp.direction_offset * 2*np.pi/5)
+            temp.valid_positions = True
             index = self.find_viable_walker_index(coord)
-            self.lattice_walkers.insert(index, W)
-            return W
+            self.lattice_walkers.insert(index, temp)
+            return temp
         return
     
     def generate_lattice_walkers(self, radius: int) -> None:
@@ -221,3 +258,6 @@ class LatticeSystem(object):
             self.generate_lattice_walker(iter.this_coord)
             iter.next()
     
+    def update(self) -> None:
+        for lat_pt in self.lattice_points:
+            lat_pt.update()

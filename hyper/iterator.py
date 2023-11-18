@@ -1,7 +1,6 @@
 import numpy as np
 import copy
 
-from hyper.coord import LatticeCoord
 
 class LatticeCircularIterator(object):
     

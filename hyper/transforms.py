@@ -1,7 +1,10 @@
 import numpy as np
+import copy 
+from typing import ForwardRef
+
 import hyper.hyper_utils as hyper_utils
-from coord import LatticeCoord
-from system import LatticeSystem
+from hyper.render_utils import BRANCH_LENGTH, project_onto_screen
+
 
 class PolarTransform(object):
     
@@ -79,15 +82,87 @@ class PolarTransform(object):
         copy_transform = self.copy()
         copy_transform.apply_polar_transform(p.inverse())
         return copy_transform.s
+    
+    def pos_on_screen(self) -> np.ndarray:
+        transfrom = self.get_matrix()
+        p = np.array([1, 0, 0, 0])
+        p = transfrom @ p
+        p = project_onto_screen(p)
+        return p
 
 
 class LatticeTransform(object):
     
-    def __init__(self, transform: PolarTransform, coord: LatticeCoord, d_system: LatticeSystem) -> None:
+    from hyper.lattice import LatticeCoord, LatticePoint
+    
+    def __init__(self, transform: PolarTransform, coord: LatticeCoord, d_system: "LatticeSystem") -> None:
         self.rel_transform = transform
         self.system = d_system
         
         self.base_point = d_system.get_lattice_point(coord)
+        
+    def relative_transform_in_direction(self, direction: int) -> PolarTransform:
+        p = copy.deepcopy(self.rel_transform)
+        p.apply_polar_transform(PolarTransform(direction*2*np.pi/5, BRANCH_LENGTH, np.pi))
+        return p
+    
+    def get_lattice_point_in_direction_if_exists(self, direction: int) -> LatticePoint:
+        return self.system.get_lattice_point_if_exists(self.base_point.coords.coord_in_direction(direction))
+    
+    def step_basepoint_in_direction(self, direction: int) -> None:
+        """Steps the basepoint in a direction, without changing
+        the actual transformation
+
+        Args:
+            direction (int): _description_
+        """
+        new_base_point = self.system.get_lattice_point(self.base_point.coords.coord_in_direction(direction))
+        turn_amount = self.base_point.coords.direction_after_travel(direction)
+        self.base_point = new_base_point
+        self.rel_transform.apply_polar_transform(PolarTransform(direction*2*np.pi/5, BRANCH_LENGTH, np.pi-turn_amount*2*np.pi/5))
+    
+    def shift_to_nearer_basepoint(self) -> None:
+        """Changes base point so that the rel_transform has a shorter magnitude.
+        If there is no shorter one, it does nothing
+        """
+        transform_len = np.abs(self.rel_transform.s)
+        for i in range(5):
+            if np.abs(self.relative_transform_in_direction(i).s) < transform_len:
+                self.step_basepoint_in_direction(i)
+                return
+        return
+    
+    def resolve_base_point(self) -> None:
+        stepped = True
+        while stepped:
+            stepped = False
+            transform_len = np.abs(self.rel_transform.s)
+            for i in range(5):
+                if np.abs(self.relative_transform_in_direction(i).s) < transform_len:
+                    self.step_basepoint_in_direction(i)
+                    stepped = True
+    
+    def try_resolve_base_point(self) -> bool:
+        stepped = True
+        while stepped:
+            stepped = False
+            transform_len = np.abs(self.rel_transform.s)
+            for i in range(5):
+                if np.abs(self.relative_transform_in_direction(i).s) < transform_len:
+                    if self.get_lattice_point_in_direction_if_exists(i) is not None:
+                        self.step_basepoint_in_direction(i)
+                        stepped = True
+                    else:
+                        return False
+        return True
+    
+    def apply_polar_transform(self, T: PolarTransform) -> None:
+        self.rel_transform.apply_polar_transform(T)
+        self.resolve_base_point()
+    
+    def try_apply_polar_transform(self, T: PolarTransform) -> bool:
+        self.rel_transform.apply_polar_transform(T)
+        return self.try_resolve_base_point()
     
     
         

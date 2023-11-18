@@ -12,16 +12,30 @@ def scale_to_screen(point: np.ndarray) -> np.ndarray:
 def project_onto_screen(point: np.ndarray) -> np.ndarray:
     return scale_to_screen(hyper_utils.project_onto_poincare_disc(point))
 
-def draw_line(screen, cur_transform: np.ndarray, angle: float, line_length: float) -> None:
-    prev_point = None
-    inc = 0.1
+# def draw_line(screen, cur_transform: np.ndarray, angle: float, line_length: float) -> None:
+#     prev_point = None
+#     inc = 0.1
+#     for i in np.arange(0, line_length, inc):
+#         next_point = hyper_utils.polar_vector(i, angle)
+#         next_point = cur_transform @ next_point
+#         next_point = project_onto_screen(next_point)
+#         if (i >= inc):
+#             pygame.draw.line(screen, 'purple', prev_point[:-1], next_point[:-1], width=4)
+#         prev_point = next_point
+
+def draw_line(screen, cur_transform: np.ndarray, angle: float = None, line_length: float = 0) -> None:
+    transform_copy = cur_transform.copy()
+    if angle is not None:
+        transform_copy = transform_copy @ hyper_utils.rotation_mat(angle)
+    inc = 0.3
     for i in np.arange(0, line_length, inc):
-        next_point = hyper_utils.polar_vector(i, angle)
-        next_point = cur_transform @ next_point
+        next_point = hyper_utils.polar_vector(i, 0)
+        next_point = transform_copy @ next_point
         next_point = project_onto_screen(next_point)
-        if (i >= inc):
+        if (i > 0):
             pygame.draw.line(screen, 'purple', prev_point[:-1], next_point[:-1], width=4)
         prev_point = next_point
+    
 
 def draw_order5_tiling(screen, cur_transform: np.ndarray) -> None:
     transform_copy = cur_transform.copy()
