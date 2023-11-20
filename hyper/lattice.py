@@ -46,7 +46,7 @@ class LatticeCoord(object):
         return LatticeType.BRANCH3
     
     def coord_in_direction(self, direction: int) -> "LatticeCoord":
-        direction %= 5
+        direction = direction % 5
         if self.type == LatticeType.INVALID:
             return
         if self.type == LatticeType.ORIGIN:
@@ -105,7 +105,7 @@ class LatticeCoord(object):
                     return LatticeCoord([(coord_copy[0]+1)%5, 0])
                 coord_copy.append(2)
                 index = len(coord_copy) - 1
-                while coord_copy[index] == 2 and index > 1:
+                while coord_copy[index] == 2 and index > 0:
                     coord_copy[index] = 0
                     index -= 1
                 if index == 0 or coord_copy[index - 1] != 0:
@@ -210,10 +210,10 @@ class LatticePoint(object):
             screen_pos = p_transform.pos_on_screen()
             screen_pos_length = np.linalg.norm(np.array([(screen_pos[0]/SCALE)-1, (screen_pos[1]/SCALE)-1]))
             
-            pygame.draw.circle(graphic, 'black', pygame.Vector2(screen_pos[0], screen_pos[1]), 20*(1.5 - screen_pos_length))
+            # pygame.draw.circle(graphic, 'black', pygame.Vector2(screen_pos[0], screen_pos[1]), 20*(1.5 - screen_pos_length))
             
-            # text_render = font.render(self.to_string(), True, (255, 255, 255))
-            # graphic.blit(text_render, (screen_pos[0], screen_pos[1]))
+            text_render = font.render(self.to_string(), True, (255, 255, 255))
+            graphic.blit(text_render, (screen_pos[0], screen_pos[1]))
     
     def update(self) -> None:
         pass

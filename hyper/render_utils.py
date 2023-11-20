@@ -25,7 +25,6 @@ def draw_line(screen, cur_transform: np.ndarray, angle: float = None, line_lengt
             pygame.draw.line(screen, 'black', prev_point[:-1], next_point[:-1], width=4)
         prev_point = next_point
     
-
 def draw_order5_tiling(screen, cur_transform: np.ndarray) -> None:
     transform_copy = cur_transform.copy()
     for i in range(5):
