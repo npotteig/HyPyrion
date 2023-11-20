@@ -1,18 +1,13 @@
 import pygame
+import numpy as np
+from sys import exit
+
 import hyper.render_utils as render_utils
 from hyper.render_utils import SCALE
 import hyper.hyper_utils as hyper_utils
 from hyper.transforms import PolarTransform, LatticeTransform
 from hyper.system import LatticeSystem
 from hyper.lattice import *
-import numpy as np
-from sys import exit
-
-from pydub import AudioSegment
-from pydub.playback import play
-
-
-import time
 
 # pygame.mixer.init()
 pygame.init()
@@ -24,11 +19,10 @@ pygame.display.set_caption('HyPyrion')
 # pygame.mixer.init()
 
 # Load the music file
-bg_music = AudioSegment.from_file('music/hr-domina-hunting.ogg', format='ogg')
-# bg_music.set_volume(0.2)
+bg_music = pygame.mixer.Sound('music/hr-domina-hunting.ogg')
+bg_music.set_volume(0.2)
 
-# bg_music.play(loops=-1)
-play(bg_music)
+bg_music.play(loops=-1)
 
 l_system = LatticeSystem()
 start_transform = LatticeTransform(PolarTransform(0, 0, 0), LatticeCoord([]), l_system)
