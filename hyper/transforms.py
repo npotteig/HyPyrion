@@ -125,7 +125,6 @@ class LatticeTransform(object):
     def relative_transform_in_direction(self, direction: int) -> PolarTransform:
         p = copy.deepcopy(self.rel_transform)
         p.apply_polar_transform(PolarTransform(direction*2*np.pi/5, BRANCH_LENGTH, np.pi))
-        # print(p.to_string())
         return p
     
     def get_lattice_point_in_direction_if_exists(self, direction: int) -> LatticePoint:
@@ -143,7 +142,8 @@ class LatticeTransform(object):
         turn_amount = self.base_point.coords.direction_after_travel(direction)
         self.base_point = new_base_point
         self.rel_transform.apply_polar_transform(PolarTransform(direction*2*np.pi/5, BRANCH_LENGTH, np.pi-turn_amount*2*np.pi/5))
-        print(self.rel_transform.to_string())
+        # print(self.rel_transform.to_string())
+        self.rel_transform.s = 0
     
     def shift_to_nearer_basepoint(self) -> None:
         """Changes base point so that the rel_transform has a shorter magnitude.
