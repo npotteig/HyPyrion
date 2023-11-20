@@ -132,7 +132,7 @@ class LatticeCoord(object):
             return self.coord[-1] + 2 
         
     def direction_after_travel(self, direction: int) -> int:
-        direction %= 5
+        direction = direction % 5
         if self.type == LatticeType.INVALID:
             return -1
         if self.type == LatticeType.ORIGIN:
@@ -186,6 +186,7 @@ class LatticeCoord(object):
                 s += ','
         s += '>'
         return s
+    
 class LatticePoint(object):
 
     def __init__(self, d_coord: LatticeCoord, d_system: "LatticeSystem") -> None:
@@ -201,7 +202,7 @@ class LatticePoint(object):
     
     def render_point(self, p_transform: PolarTransform, graphic: pygame.Surface, font) -> None:
         transform = p_transform.get_matrix()
-        if self.coords.type != LatticeType.ORIGIN:
+        if True:
             draw_line(graphic, transform, line_length=BRANCH_LENGTH)
             if self.coords.type == LatticeType.BRANCH2:
                 draw_line(graphic, transform, angle=2*np.pi/5, line_length=BRANCH_LENGTH)
@@ -209,10 +210,10 @@ class LatticePoint(object):
             screen_pos = p_transform.pos_on_screen()
             screen_pos_length = np.linalg.norm(np.array([(screen_pos[0]/SCALE)-1, (screen_pos[1]/SCALE)-1]))
             
-            pygame.draw.circle(graphic, 'red', pygame.Vector2(screen_pos[0], screen_pos[1]), 20*(1.5 - screen_pos_length))
+            pygame.draw.circle(graphic, 'black', pygame.Vector2(screen_pos[0], screen_pos[1]), 20*(1.5 - screen_pos_length))
             
-            text_render = font.render(self.to_string(), True, (255, 255, 255))
-            graphic.blit(text_render, (screen_pos[0], screen_pos[1]))
+            # text_render = font.render(self.to_string(), True, (255, 255, 255))
+            # graphic.blit(text_render, (screen_pos[0], screen_pos[1]))
     
     def update(self) -> None:
         pass
@@ -284,14 +285,14 @@ class LatticeWalker(object):
         
         if d_coord_rel is not None:
             self.coord_origin_rel = d_coord_rel
-            self.rel_orient_parent = PolarTransform(d_coord_rel.angle_of_leaf(), BRANCH_LENGTH, np.pi)
+            self.rel_orient_parent = PolarTransform(self.coord_origin_rel.angle_of_leaf(), BRANCH_LENGTH, np.pi)
         else:
             self.coord_origin_rel = LatticeCoord([])
             self.base_point = self.system.get_lattice_point(LatticeCoord([]))
             self.base_point.attached_walker = self
             
             self.direction_offset = 0
-            self.absolute_position = PolarTransform(0, 0, 0)
+            self.absolute_position = PolarTransform(0, 0.2, 0.3)
             self.rel_orient_parent = PolarTransform(0, 0, 0)
             self.render_position = copy.deepcopy(self.absolute_position)
         

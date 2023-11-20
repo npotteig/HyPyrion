@@ -10,10 +10,15 @@ class PolarTransform(object):
     
     def __init__(self, dN: float, dS: float, dM: float) -> None:
         self.n, self.s, self.m = dN, dS, dM
+        
+    def to_string(self) -> str:
+        return str(self.n) + ", " + str(self.s) + ", " + str(self.m)
     
     def get_matrix(self) -> np.ndarray:
         start_transform = hyper_utils.rotation_mat(self.n)
-        start_transform = start_transform @ hyper_utils.translation_mat_z(self.s)
+        P = hyper_utils.translation_mat_y(0)
+        P = P @ hyper_utils.translation_mat_z(self.s)
+        start_transform = start_transform @ P
         start_transform = start_transform @ hyper_utils.rotation_mat(self.m)
         return start_transform
     
@@ -24,31 +29,47 @@ class PolarTransform(object):
         self.m += a
     
     def apply_translation_z(self, l: float) -> None:
-        self.n = np.arctan2((np.cos(self.n)*np.sin(self.m)+np.cos(self.m)*np.sin(self.n)*np.cosh(self.s))*np.sinh(l)+np.sin(self.n)*np.sinh(self.s)*np.cosh(l),
+        temp_n = np.arctan2((np.cos(self.n)*np.sin(self.m)+np.cos(self.m)*np.sin(self.n)*np.cosh(self.s))*np.sinh(l)+np.sin(self.n)*np.sinh(self.s)*np.cosh(l),
                        (np.cos(self.m)*np.cos(self.n)*np.cosh(self.s)-np.sin(self.m)*np.sin(self.n))*np.sinh(l)+np.cos(self.n)*np.cosh(l)*np.sinh(self.s))
-        self.s = np.arccosh(np.cosh(l)*np.cosh(self.s)+np.cos(self.m)*np.sinh(l)*np.sinh(self.s))
-        self.m = np.arctan2((np.sin(self.m)*np.sinh(self.s)),(np.cosh(self.s)*np.sinh(l)+np.cosh(l)*np.sinh(self.s)*np.cos(self.m)))
+        temp_s = np.arccosh(np.cosh(l)*np.cosh(self.s)+np.cos(self.m)*np.sinh(l)*np.sinh(self.s))
+        temp_m = np.arctan2((np.sin(self.m)*np.sinh(self.s)),(np.cosh(self.s)*np.sinh(l)+np.cosh(l)*np.sinh(self.s)*np.cos(self.m)))
+        
+        self.n = temp_n
+        self.s = temp_s
+        self.m = temp_m    
     
     def apply_translation_y(self, l: float) -> None:
-        self.n = np.arctan2((np.cos(self.n)*np.sin(self.m)-np.cosh(self.s)*np.sin(self.m)*np.sin(self.n))*np.sinh(l)+np.cosh(l)*np.sinh(self.s)*np.sin(self.n),
+        temp_n = np.arctan2((np.cos(self.n)*np.sin(self.m)-np.cosh(self.s)*np.sin(self.m)*np.sin(self.n))*np.sinh(l)+np.cosh(l)*np.sinh(self.s)*np.sin(self.n),
                             (-np.cos(self.m)*np.cosh(self.s)*np.sin(self.n)-np.cos(self.m)*np.sin(self.n))*np.sinh(l)+np.cosh(l)*np.sinh(self.s)*np.cos(self.n))
-        self.s = np.arccosh(np.cosh(l)*np.cosh(self.s)+np.sin(self.m)*np.sinh(l)*np.sinh(self.s))
-        self.m = np.arctan2(-(np.cosh(self.s)*np.sinh(l)+np.cosh(l)*np.sinh(self.s)*np.sin(self.m)),(np.cos(self.m)*np.sinh(self.s)))
+        temp_s = np.arccosh(np.cosh(l)*np.cosh(self.s)+np.sin(self.m)*np.sinh(l)*np.sinh(self.s))
+        temp_m = np.arctan2(-(np.cosh(self.s)*np.sinh(l)+np.cosh(l)*np.sinh(self.s)*np.sin(self.m)),(np.cos(self.m)*np.sinh(self.s)))
+    
+        self.n = temp_n
+        self.s = temp_s
+        self.m = temp_m
     
     def preapply_rotation(self, a: float) -> None:
         self.n += a
     
     def preapply_translation_z(self, l: float) -> None:
-        self.n = np.arctan2(np.cosh(self.s)*np.sinh(l)+np.cosh(l)*np.sinh(self.s)*np.sin(self.n),np.cos(self.n)*np.sinh(self.s))
-        self.s = np.arccosh(np.cosh(l)*np.cosh(self.s)+np.sin(self.n)*np.sinh(l)*np.sinh(self.s))
-        self.m = np.arctan2(-np.cos(self.m)*np.cos(self.n)*np.sinh(l)+np.sin(self.m)*(np.cosh(self.s)*np.sinh(l)*np.sin(self.n)+np.cosh(l)*np.sinh(self.s)),
+        temp_n = np.arctan2(np.cosh(self.s)*np.sinh(l)+np.cosh(l)*np.sinh(self.s)*np.sin(self.n),np.cos(self.n)*np.sinh(self.s))
+        temp_s = np.arccosh(np.cosh(l)*np.cosh(self.s)+np.sin(self.n)*np.sinh(l)*np.sinh(self.s))
+        temp_m = np.arctan2(-np.cos(self.m)*np.cos(self.n)*np.sinh(l)+np.sin(self.m)*(np.cosh(self.s)*np.sinh(l)*np.sin(self.n)+np.cosh(l)*np.sinh(self.s)),
                        np.cos(self.n)*np.sin(self.m)*np.sinh(l)+np.cos(self.m)*(np.cosh(self.s)*np.sinh(l)*np.sin(self.n)+np.cosh(l)*np.sinh(self.s)))
-    
+        
+        self.n = temp_n
+        self.s = temp_s
+        self.m = temp_m
+        
     def preapply_translation_y(self, l: float) -> None:
-        self.n = np.arctan2(np.sin(self.n)*np.sinh(self.s),np.cosh(self.s)*np.sinh(l)+np.cos(self.n)*np.cosh(l)*np.sinh(self.s))
-        self.s = np.arccosh(np.cosh(l)*np.cosh(self.s)+np.cos(self.n)*np.sinh(l)*np.sinh(self.s))
-        self.m = np.arctan2(np.cos(self.m)*np.sin(self.n)*np.sinh(l)+np.sin(self.m)*(np.cos(self.n)*np.sinh(l)*np.cosh(self.s)+np.cosh(l)*np.sinh(self.s)),
+        temp_n = np.arctan2(np.sin(self.n)*np.sinh(self.s),np.cosh(self.s)*np.sinh(l)+np.cos(self.n)*np.cosh(l)*np.sinh(self.s))
+        temp_s = np.arccosh(np.cosh(l)*np.cosh(self.s)+np.cos(self.n)*np.sinh(l)*np.sinh(self.s))
+        temp_m = np.arctan2(np.cos(self.m)*np.sin(self.n)*np.sinh(l)+np.sin(self.m)*(np.cos(self.n)*np.sinh(l)*np.cosh(self.s)+np.cosh(l)*np.sinh(self.s)),
                        np.cos(self.m)*(np.cos(self.n)*np.cosh(self.s)*np.sinh(l)+np.cosh(l)*np.sinh(self.s))-np.sin(self.m)*np.sin(self.n)*np.sinh(l))
+        
+        self.n = temp_n
+        self.s = temp_s
+        self.m = temp_m
     
     def apply_polar_transform(self, pt: "PolarTransform") -> None:
         if isinstance(pt, PolarTransform):
@@ -61,7 +82,7 @@ class PolarTransform(object):
     def preapply_polar_transform(self, pt: "PolarTransform") -> None:
         if isinstance(pt, PolarTransform):
             self.preapply_rotation(pt.m)
-            self.preapply_translation_z(pt.s)
+            self.preapply_translation_y(pt.s)
             self.preapply_rotation(pt.n)
         else:
             raise TypeError("Unsuppported Type")

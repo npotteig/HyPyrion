@@ -24,11 +24,11 @@ class LatticeSystem(object):
             parent = self.generate_lattice_walker(walker.coord_origin_rel.coord_in_direction(0))
             if parent.coord_origin_rel.type != LatticeType.ORIGIN:
                 self.validate_walker_positions(parent)
+                
             
-            walker.absolute_position = copy.deepcopy(parent.absolute_position)
-            
+            walker.absolute_position = parent.absolute_position.copy()
             walker.absolute_position.apply_polar_transform(walker.rel_orient_parent)
-            walker.render_position = copy.deepcopy(walker.absolute_position)
+            walker.render_position = walker.absolute_position.copy()
             walker.render_position.apply_rotation(-walker.direction_offset*2*np.pi/5)
             walker.valid_positions = True
     
@@ -53,7 +53,7 @@ class LatticeSystem(object):
             self.walker_origin.render_position = copy.deepcopy(self.walker_origin.absolute_position)
             self.lattice_walkers = [self.walker_origin]
             self.generate_lattice_walkers(3)
-        # pass
+        pass
     
     def set_view_origin_lattrans(self, transform: LatticeTransform) -> None:
         self.set_view_origin(transform.base_point.coords, transform.rel_transform)
@@ -219,7 +219,6 @@ class LatticeSystem(object):
         """
         if coord.type != LatticeType.INVALID:
             index = self.find_viable_walker_index(coord)
-            # print(index)
             if len(self.lattice_walkers) > 0:
                 try:
                     if self.lattice_walkers[index].compare_to(coord) == 0:
@@ -232,15 +231,24 @@ class LatticeSystem(object):
             
             if coord.type != LatticeType.ORIGIN:
                 parent = self.generate_lattice_walker(coord.coord_in_direction(0))
-                
-                temp.absolute_position = copy.deepcopy(temp.rel_orient_parent)
+                # if coord.coord == [4, 0]:
+                #     print(temp.rel_orient_parent.to_string())
+                # temp.absolute_position = parent.absolute_position.copy()
+                # temp.absolute_position.apply_polar_transform(temp.rel_orient_parent)
+                temp.absolute_position = temp.rel_orient_parent.copy()
                 temp.absolute_position.preapply_polar_transform(parent.absolute_position)
                 temp.base_point = self.get_lattice_point(parent.base_point.coords.coord_in_direction(parent.direction_offset + coord.direction_of_leaf()))
                 temp.base_point.attached_walker = temp
                 temp.direction_offset = parent.base_point.coords.direction_after_travel(parent.direction_offset + coord.direction_of_leaf())
                 
+                # if len(coord.coord) == 1:
+                #     # print(temp.absolute_position.to_string())
+                #     temp.absolute_position.m *= -1
+                #     # print(temp.absolute_position.to_string())
+                #     # print(parent.absolute_position.to_string())
+                #     # asdf
                 temp.render_position = copy.deepcopy(temp.absolute_position)
-                # temp.render_position.apply_rotation(-temp.direction_offset * 2*np.pi/5)
+                temp.render_position.apply_rotation(-(temp.direction_offset) * 2*np.pi/5)
             temp.valid_positions = True
             index = self.find_viable_walker_index(coord)
             self.lattice_walkers.insert(index, temp)

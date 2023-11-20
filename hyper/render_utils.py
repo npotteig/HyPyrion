@@ -33,7 +33,7 @@ def draw_line(screen, cur_transform: np.ndarray, angle: float = None, line_lengt
         next_point = transform_copy @ next_point
         next_point = project_onto_screen(next_point)
         if (i > 0):
-            pygame.draw.line(screen, 'purple', prev_point[:-1], next_point[:-1], width=4)
+            pygame.draw.line(screen, 'black', prev_point[:-1], next_point[:-1], width=4)
         prev_point = next_point
     
 
@@ -70,4 +70,3 @@ def draw2_branch_sector(screen, cur_transform: np.ndarray, depth: int) -> None:
         draw2_branch_sector(screen, transform_copy, depth + 1)
         transform_copy = transform_copy @ hyper_utils.rotation_mat(2 * np.pi / 5)
         draw3_branch_sector(screen, transform_copy, depth + 1)
-
