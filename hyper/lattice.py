@@ -210,7 +210,7 @@ class LatticePoint(object):
             screen_pos = p_transform.pos_on_screen()
             screen_pos_length = np.linalg.norm(np.array([(screen_pos[0]/SCALE)-1, (screen_pos[1]/SCALE)-1]))
             
-            # pygame.draw.circle(graphic, 'black', pygame.Vector2(screen_pos[0], screen_pos[1]), 20*(1.5 - screen_pos_length))
+            pygame.draw.circle(graphic, 'black', pygame.Vector2(screen_pos[0], screen_pos[1]), 20*(1.5 - screen_pos_length))
             
             text_render = font.render(self.to_string(), True, (255, 255, 255))
             graphic.blit(text_render, (screen_pos[0], screen_pos[1]))

@@ -9,10 +9,14 @@ from hyper.system import LatticeSystem
 from hyper.lattice import *
 
 WIDTH, HEIGHT = 800, 800
+MIDPOINT = np.array([WIDTH/2, HEIGHT/2])
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption('HyPyrion')
+
+# Set up the clock
+clock = pygame.time.Clock()
 
 # Load the music file
 bg_music = pygame.mixer.Sound('music/hr-domina-hunting.ogg')
@@ -27,6 +31,10 @@ font = pygame.font.Font(None, 36)  # You can choose a font and size
 
 speed = 0.04
 
+i = 1000
+
+use_mouse = True
+
 while True:
     l_system.update()
     
@@ -40,39 +48,41 @@ while True:
     pygame.draw.circle(screen, 'red', pygame.Vector2(SCALE, SCALE), SCALE, 4)
 
     l_system.set_view_origin_lattrans(start_transform)
-    start_transform.shift_to_nearer_basepoint()
+    start_transform.shift_to_nearer_basepoint(use_mouse)
     
     mouse_buttons = pygame.mouse.get_pressed()
     
-    # Tiling Traversal
-    # Click in direction of point to travel to it (Similar to Hyperrogue)
-    if mouse_buttons[0]:
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        mouse_rads = np.arctan2(mouse_x-WIDTH/2, HEIGHT/2-mouse_y)
-        start_transform.rel_transform.preapply_rotation(-mouse_rads)
-        start_transform.rel_transform.preapply_translation_z(BRANCH_LENGTH-0.1)
-        start_transform.rel_transform.preapply_rotation(mouse_rads)
-        time.sleep(0.2)
-        
     
-    # Input and Update Tessallation Transform for Continuous Action Traversal
-    keys = pygame.key.get_pressed()
-    # print(start_transform.rel_transform.to_string())
-    if keys[pygame.K_UP]:
-        # Translate Up (down b/c inverse A)
-        start_transform.rel_transform.preapply_translation_z(speed)
-        # start_transform.shift_to_nearer_basepoint()
-        # time.sleep(1)
-    elif keys[pygame.K_DOWN]:
-        # Translate Down
-        start_transform.rel_transform.preapply_translation_z(-speed)
-    elif keys[pygame.K_RIGHT]:
-        # Rotate Clockwise
-        start_transform.rel_transform.preapply_rotation(-speed) 
-        # time.sleep(0.5)
-    elif keys[pygame.K_LEFT]:
-        # Rotate counterclockwise
-        start_transform.rel_transform.preapply_rotation(speed) 
+    if use_mouse:
+        # Tiling Traversal
+        # Click in direction of point to travel to it (Similar to Hyperrogue)
+        if mouse_buttons[0]:
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            mouse_pos = np.array([mouse_x, mouse_y])
+            i = 0
+            p_trans = start_transform.step_in_mouse_direction(mouse_pos, MIDPOINT)
+            time.sleep(0.2)
+        
+        # if i < 25:
+        #     start_transform.rel_transform.preapply_polar_transform(p_trans)
+        #     i += 1
+        
+    else:
+        # Input and Update Tessallation Transform for Continuous Action Traversal
+        keys = pygame.key.get_pressed()
+        # print(start_transform.rel_transform.to_string())
+        if keys[pygame.K_UP]:
+            # Translate Up (down b/c inverse A)
+            start_transform.rel_transform.preapply_translation_z(speed)
+        elif keys[pygame.K_DOWN]:
+            # Translate Down
+            start_transform.rel_transform.preapply_translation_z(-speed)
+        elif keys[pygame.K_RIGHT]:
+            # Rotate Clockwise
+            start_transform.rel_transform.preapply_rotation(-speed) 
+        elif keys[pygame.K_LEFT]:
+            # Rotate counterclockwise
+            start_transform.rel_transform.preapply_rotation(speed) 
     
         
     for lat_walker in l_system.lattice_walkers:
@@ -82,3 +92,5 @@ while True:
         
     pygame.display.update()
     # time.sleep(1)
+    
+    clock.tick(60)
