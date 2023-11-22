@@ -153,18 +153,18 @@ class LatticeTransform(object):
             mouse_dir (np.ndarray): _description_
             midpoint (np.ndarray): _description_
         """
-        unit_mouse_pos = mouse_pos - midpoint
-        mouse_dir = np.arctan2(unit_mouse_pos[1], unit_mouse_pos[0])
-        min_point_dir = 1000
+        mouse_pos = mouse_pos - midpoint
+        mouse_norm = np.linalg.norm(mouse_pos)
+        min_point_dir = -100
         min_point = None
         for i in range(5):
             pt_in_dir = self.system.get_lattice_point(self.base_point.coords.coord_in_direction(i))
             pt_pos = pt_in_dir.attached_walker.render_position.pos_on_screen()
-            unit_pt_pos = pt_pos[:-1] - midpoint
-            pt_dir = np.arctan2(unit_pt_pos[1], unit_pt_pos[0])
-            abs_diff = np.abs(mouse_dir - pt_dir)
-            if min_point_dir > abs_diff:
-                min_point_dir = abs_diff
+            pt_pos = pt_pos[:-1] - midpoint
+            pt_norm = np.linalg.norm(pt_pos)
+            angle_radians = np.dot(mouse_pos, pt_pos) / (mouse_norm * pt_norm)
+            if min_point_dir < angle_radians:
+                min_point_dir = angle_radians
                 min_point = pt_in_dir
         min_point_render_pos = min_point.attached_walker.render_position
         p_trans = PolarTransform(min_point_render_pos.n, -0.05, -min_point_render_pos.n)

@@ -50,23 +50,18 @@ while True:
     l_system.set_view_origin_lattrans(start_transform)
     shifted = start_transform.shift_to_nearer_basepoint(use_mouse)
     
-    mouse_buttons = pygame.mouse.get_pressed()
-    
-    
     if use_mouse:
+        mouse_buttons = pygame.mouse.get_pressed()
         # Tiling Traversal
         # Click in direction of point to travel to it (Similar to Hyperrogue)
-        if mouse_buttons[0]:
+        if not mouse_pressed and mouse_buttons[0]:
             mouse_x, mouse_y = pygame.mouse.get_pos()
             mouse_pos = np.array([mouse_x, mouse_y])
             p_trans = start_transform.step_in_mouse_direction(mouse_pos, MIDPOINT)
-            i = 0
             mouse_pressed = True
-            time.sleep(0.2)
         
         if not shifted and mouse_pressed:
             start_transform.rel_transform.preapply_polar_transform(p_trans)
-            # i += 1
         else:
             mouse_pressed = False
         
