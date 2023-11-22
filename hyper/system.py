@@ -54,8 +54,7 @@ class LatticeSystem(object):
             self.walker_origin.render_position = copy.deepcopy(self.walker_origin.absolute_position)
             self.lattice_walkers = [self.walker_origin]
             self.generate_lattice_walkers(3)
-        pass
-    
+        
     def set_view_origin_lattrans(self, transform: LatticeTransform) -> None:
         self.set_view_origin(transform.base_point.coords, transform.rel_transform)
             

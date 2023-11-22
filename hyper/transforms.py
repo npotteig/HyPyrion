@@ -143,6 +143,8 @@ class LatticeTransform(object):
         self.rel_transform.apply_polar_transform(PolarTransform(direction*2*np.pi/5, BRANCH_LENGTH, np.pi-turn_amount*2*np.pi/5))
         if use_mouse:
             self.rel_transform.s = 0
+            # self.rel_transform.n = 0
+            # self.rel_transform.m = 0
         
     def step_in_mouse_direction(self, mouse_pos: np.ndarray, midpoint: np.ndarray) -> PolarTransform:
         """Steps Rel_transform in direction of mouse position
@@ -165,24 +167,25 @@ class LatticeTransform(object):
                 min_point_dir = abs_diff
                 min_point = pt_in_dir
         min_point_render_pos = min_point.attached_walker.render_position
-        p_trans = PolarTransform(min_point_render_pos.n, -BRANCH_LENGTH+0.1, -min_point_render_pos.n)
-        self.rel_transform.preapply_polar_transform(p_trans) 
+        p_trans = PolarTransform(min_point_render_pos.n, -0.05, -min_point_render_pos.n)
+        # self.rel_transform.preapply_polar_transform(p_trans) 
         return p_trans   
                 
     
-    def shift_to_nearer_basepoint(self, use_mouse: bool) -> None:
+    def shift_to_nearer_basepoint(self, use_mouse: bool) -> bool:
         """Changes base point so that the rel_transform has a shorter magnitude.
         If there is no shorter one, it does nothing
         """
+        # print(self.base_point.attached_walker.render_position.pos_on_screen())
         if use_mouse:
-            transform_len = 0.2
+            transform_len = 0.1
         else:
             transform_len = np.abs(self.rel_transform.s)
         for i in range(5):
             if np.abs(self.relative_transform_in_direction(i).s) < transform_len:
                 self.step_basepoint_in_direction(i, use_mouse)
-                return
-        return
+                return True
+        return False
     
     def resolve_base_point(self) -> None:
         stepped = True

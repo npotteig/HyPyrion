@@ -31,9 +31,9 @@ font = pygame.font.Font(None, 36)  # You can choose a font and size
 
 speed = 0.04
 
-i = 1000
-
 use_mouse = True
+mouse_pressed = False
+print_text = False
 
 while True:
     l_system.update()
@@ -48,7 +48,7 @@ while True:
     pygame.draw.circle(screen, 'red', pygame.Vector2(SCALE, SCALE), SCALE, 4)
 
     l_system.set_view_origin_lattrans(start_transform)
-    start_transform.shift_to_nearer_basepoint(use_mouse)
+    shifted = start_transform.shift_to_nearer_basepoint(use_mouse)
     
     mouse_buttons = pygame.mouse.get_pressed()
     
@@ -59,13 +59,16 @@ while True:
         if mouse_buttons[0]:
             mouse_x, mouse_y = pygame.mouse.get_pos()
             mouse_pos = np.array([mouse_x, mouse_y])
-            i = 0
             p_trans = start_transform.step_in_mouse_direction(mouse_pos, MIDPOINT)
+            i = 0
+            mouse_pressed = True
             time.sleep(0.2)
         
-        # if i < 25:
-        #     start_transform.rel_transform.preapply_polar_transform(p_trans)
-        #     i += 1
+        if not shifted and mouse_pressed:
+            start_transform.rel_transform.preapply_polar_transform(p_trans)
+            # i += 1
+        else:
+            mouse_pressed = False
         
     else:
         # Input and Update Tessallation Transform for Continuous Action Traversal
@@ -86,7 +89,7 @@ while True:
     
         
     for lat_walker in l_system.lattice_walkers:
-        lat_walker.base_point.render_point(lat_walker.render_position, screen, font)
+        lat_walker.base_point.render_point(lat_walker.render_position, screen, font, print_text)
         
         
         

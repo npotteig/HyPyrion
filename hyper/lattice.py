@@ -200,7 +200,7 @@ class LatticePoint(object):
     def to_string(self) -> str:
         return self.coords.to_string()
     
-    def render_point(self, p_transform: PolarTransform, graphic: pygame.Surface, font) -> None:
+    def render_point(self, p_transform: PolarTransform, graphic: pygame.Surface, font: pygame.font, print_text: bool) -> None:
         transform = p_transform.get_matrix()
         if True:
             draw_line(graphic, transform, line_length=BRANCH_LENGTH)
@@ -210,10 +210,10 @@ class LatticePoint(object):
             screen_pos = p_transform.pos_on_screen()
             screen_pos_length = np.linalg.norm(np.array([(screen_pos[0]/SCALE)-1, (screen_pos[1]/SCALE)-1]))
             
-            pygame.draw.circle(graphic, 'black', pygame.Vector2(screen_pos[0], screen_pos[1]), 20*(1.5 - screen_pos_length))
-            
-            text_render = font.render(self.to_string(), True, (255, 255, 255))
-            graphic.blit(text_render, (screen_pos[0], screen_pos[1]))
+            pygame.draw.circle(graphic, 'black', pygame.Vector2(screen_pos[0], screen_pos[1]), 10*(1.5 - screen_pos_length))
+            if print_text:
+                text_render = font.render(self.to_string(), True, (255, 255, 255))
+                graphic.blit(text_render, (screen_pos[0], screen_pos[1]))
     
     def update(self) -> None:
         pass
